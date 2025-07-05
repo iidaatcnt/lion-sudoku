@@ -9,37 +9,38 @@ import GameBoard from './GameBoard';
 import GameControls from './GameControls';
 import GameStatus from './GameStatus';
 
-export default function LionSudoku() {
-  const [gameState, setGameState] = useState<GameState>({
-    currentPuzzle: 0,
-    board: [],
-    initialBoard: [],
-    isComplete: false,
-    showHint: false,
-    soundEnabled: true,
-    errorCells: [],
-    showSolution: false,
-  });
+const [gameState, setGameState] = useState<GameState>({
+  currentPuzzle: 0,
+  board: [],
+  initialBoard: [],
+  isComplete: false,
+  showHint: false,
+  soundEnabled: true,
+  errorCells: [],
+  showSolution: false,
+  isGivenUp: false, // 追加
+});
 
   // パズル初期化
   useEffect(() => {
     initializePuzzle(gameState.currentPuzzle);
   }, [gameState.currentPuzzle]);
 
-  const initializePuzzle = (puzzleIndex: number) => {
-    const puzzle = puzzles[puzzleIndex];
-    const initial = puzzle.initial.map(row => [...row]);
-    
-    setGameState(prev => ({
-      ...prev,
-      board: initial,
-      initialBoard: initial,
-      isComplete: false,
-      showHint: false,
-      errorCells: [],
-      showSolution: false,
-    }));
-  };
+const initializePuzzle = (puzzleIndex: number) => {
+  const puzzle = puzzles[puzzleIndex];
+  const initial = puzzle.initial.map(row => [...row]);
+  
+  setGameState(prev => ({
+    ...prev,
+    board: initial,
+    initialBoard: initial,
+    isComplete: false,
+    showHint: false,
+    errorCells: [],
+    showSolution: false,
+    isGivenUp: false, // 追加
+  }));
+};
 
   // セル値変更
   const handleCellChange = (row: number, col: number, value: string) => {
@@ -117,16 +118,17 @@ export default function LionSudoku() {
   };
 
   // ギブアップ機能
-  const handleGiveUp = () => {
-    const solution = puzzles[gameState.currentPuzzle].solution;
-    setGameState(prev => ({
-      ...prev,
-      board: solution.map(row => [...row]),
-      showSolution: true,
-      errorCells: [],
-    }));
-    playSound('giveup', gameState.soundEnabled);
-  };
+const handleGiveUp = () => {
+  const solution = puzzles[gameState.currentPuzzle].solution;
+  setGameState(prev => ({
+    ...prev,
+    board: solution.map(row => [...row]),
+    showSolution: true,
+    errorCells: [],
+    isGivenUp: true, // 追加
+  }));
+  playSound('giveup', gameState.soundEnabled);
+};
 
   // 正解表示
   const handleShowSolution = () => {
@@ -265,21 +267,21 @@ return (
         gap: '8px',
         marginBottom: '16px'
       }}>
-        <button
-          onClick={handleHint}
-          disabled={gameState.isComplete || gameState.showSolution}
-          style={{
-            backgroundColor: gameState.isComplete || gameState.showSolution ? '#d1d5db' : '#10b981',
-            color: 'white',
-            fontWeight: 'bold',
-            padding: '8px 16px',
-            borderRadius: '4px',
-            border: 'none',
-            cursor: gameState.isComplete || gameState.showSolution ? 'not-allowed' : 'pointer'
-          }}
-        >
-          💡 ヒント
-        </button>
+<button
+  onClick={handleHint}
+  disabled={gameState.isComplete || gameState.showSolution || gameState.isGivenUp}
+  style={{
+    backgroundColor: (gameState.isComplete || gameState.showSolution || gameState.isGivenUp) ? '#d1d5db' : '#10b981',
+    color: 'white',
+    fontWeight: 'bold',
+    padding: '8px 16px',
+    borderRadius: '4px',
+    border: 'none',
+    cursor: (gameState.isComplete || gameState.showSolution || gameState.isGivenUp) ? 'not-allowed' : 'pointer'
+  }}
+>
+  💡 ヒント
+</button>
         <button
           onClick={handleReset}
           style={{
@@ -294,21 +296,21 @@ return (
         >
           🔄 リセット
         </button>
-        <button
-          onClick={handleGiveUp}
-          disabled={gameState.isComplete || gameState.showSolution}
-          style={{
-            backgroundColor: gameState.isComplete || gameState.showSolution ? '#d1d5db' : '#f59e0b',
-            color: 'white',
-            fontWeight: 'bold',
-            padding: '8px 16px',
-            borderRadius: '4px',
-            border: 'none',
-            cursor: gameState.isComplete || gameState.showSolution ? 'not-allowed' : 'pointer'
-          }}
-        >
-          🏳️ ギブアップ
-        </button>
+<button
+  onClick={handleGiveUp}
+  disabled={gameState.isComplete || gameState.showSolution || gameState.isGivenUp}
+  style={{
+    backgroundColor: (gameState.isComplete || gameState.showSolution || gameState.isGivenUp) ? '#d1d5db' : '#f59e0b',
+    color: 'white',
+    fontWeight: 'bold',
+    padding: '8px 16px',
+    borderRadius: '4px',
+    border: 'none',
+    cursor: (gameState.isComplete || gameState.showSolution || gameState.isGivenUp) ? 'not-allowed' : 'pointer'
+  }}
+>
+  🏳️ ギブアップ
+</button>
         <button
           onClick={handleShowSolution}
           disabled={gameState.isComplete}
@@ -327,33 +329,38 @@ return (
       </div>
 
       {/* 完成メッセージ */}
-      {gameState.isComplete && (
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '16px',
-          padding: '16px',
-          backgroundColor: '#dcfce7',
-          borderRadius: '8px'
-        }}>
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
-          <p style={{ color: '#166534', fontWeight: 'bold' }}>おめでとう！クリアしました！</p>
-          <button
-            onClick={handleNextPuzzle}
-            style={{
-              marginTop: '8px',
-              backgroundColor: 'white',
-              color: '#16a34a',
-              fontWeight: 'bold',
-              padding: '8px 16px',
-              borderRadius: '4px',
-              border: '2px solid #16a34a',
-              cursor: 'pointer'
-            }}
-          >
-            次の問題へ →
-          </button>
-        </div>
-      )}
+{gameState.isGivenUp && !gameState.isComplete && (
+  <div style={{
+    textAlign: 'center',
+    marginBottom: '16px',
+    padding: '16px',
+    backgroundColor: '#fef3c7',
+    borderRadius: '8px',
+    border: '2px solid #f59e0b'
+  }}>
+    <div style={{ fontSize: '32px', marginBottom: '8px' }}>😅</div>
+    <p style={{ color: '#92400e', fontWeight: 'bold', marginBottom: '8px' }}>
+      答えを表示しました
+    </p>
+    <p style={{ color: '#92400e', fontSize: '14px', marginBottom: '12px' }}>
+      次の問題で頑張りましょう！
+    </p>
+    <button
+      onClick={handleNextPuzzle}
+      style={{
+        backgroundColor: '#f59e0b',
+        color: 'white',
+        fontWeight: 'bold',
+        padding: '8px 16px',
+        borderRadius: '4px',
+        border: 'none',
+        cursor: 'pointer'
+      }}
+    >
+      {gameState.currentPuzzle === puzzles.length - 1 ? '最初の問題へ →' : '次の問題へ →'}
+    </button>
+  </div>
+)}
 
       {/* 進捗表示 */}
       <div style={{ textAlign: 'center', marginBottom: '16px' }}>
