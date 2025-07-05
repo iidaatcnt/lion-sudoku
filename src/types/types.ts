@@ -14,7 +14,7 @@ export interface GameState {
   soundEnabled: boolean;
   errorCells: string[];
   showSolution: boolean;
-  isGivenUp: boolean; // 追加
+  // isGivenUp は削除（別のstateで管理）
 }
 
 // 音声タイプの型定義
