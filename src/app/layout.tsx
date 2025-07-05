@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   title: 'ライオン数独 - キッズ向け',
   description: '小学生でも楽しめる可愛いライオンテーマの4x4数独ゲームアプリ',
   keywords: '数独, キッズ, ライオン, パズル, 小学生, ゲーム',
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({
